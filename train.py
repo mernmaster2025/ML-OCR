@@ -7,7 +7,7 @@ from model import OCRNet
 
 def train(epochs=20):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"Training on: {device}")
+    print(f"Training on: {device}", flush=True)
 
     model     = OCRNet(num_classes=62).to(device)
     optimizer = Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
@@ -58,7 +58,7 @@ def train(epochs=20):
               f"Loss: {total_loss/len(train_loader):.4f} | "
               f"Train: {train_acc:.1f}% | "
               f"Test: {test_acc:.1f}% | "
-              f"LR: {optimizer.param_groups[0]['lr']:.6f}")
+              f"LR: {optimizer.param_groups[0]['lr']:.6f}", flush=True)
 
         # Save best model
         if test_acc > best_acc:
@@ -69,6 +69,9 @@ def train(epochs=20):
                 'optimizer_state': optimizer.state_dict(),
                 'accuracy': best_acc,
             }, 'checkpoints/best_model.pth')
-            print(f"  → New best saved: {best_acc:.2f}%")
+            print(f"  → New best saved: {best_acc:.2f}%", flush=True)
 
-    print(f"\nTraining complete. Best accuracy: {best_acc:.2f}%")
+    print(f"\nTraining complete. Best accuracy: {best_acc:.2f}%", flush=True)
+
+if __name__ == '__main__':
+    train(epochs=20)

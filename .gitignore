@@ -216,3 +216,40 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---------------------------------------------------------------
+# ML-OCR project specific
+# ---------------------------------------------------------------
+
+# Datasets — EMNIST is ~2.2 GB and re-downloaded automatically by
+# dataset.py / test_download.py on first run.
+data/
+*.idx3-ubyte
+*.idx1-ubyte
+*.gz
+
+# Model weights & training artifacts
+checkpoints/
+*.pth
+*.pt
+*.onnx
+*.ckpt
+*.safetensors
+
+# Training logs / experiment tracking
+runs/
+logs/
+wandb/
+mlruns/
+lightning_logs/
+events.out.tfevents.*
+
+# Gradio (app.py)
+.gradio/
+flagged/
+gradio_cached_examples/
+
+# Local scratch
+*.tmp
+scratch/
+notebooks/scratch/
