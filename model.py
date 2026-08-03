@@ -5,7 +5,7 @@ class OCRNet(nn.Module):
         super().__init__()
 
         # Block 1: 1 → 32 filters
-        # 28×28 → 13×13
+        # 28×28 → 14×14
         self.block1 = nn.Sequential(
             nn.Conv2d(1, 32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),    # normalize activations → faster, more stable training
@@ -18,7 +18,7 @@ class OCRNet(nn.Module):
         )
 
         # Block 2: 32 → 64 filters
-        # 13×13 → 6×6
+        # 14×14 → 7×7
         self.block2 = nn.Sequential(
             nn.Conv2d(32, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
@@ -31,7 +31,7 @@ class OCRNet(nn.Module):
         )
 
         # Block 3: 64 → 128 filters
-        # 6×6 → 3×3
+        # 7×7 → 3×3
         self.block3 = nn.Sequential(
             nn.Conv2d(64, 128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),

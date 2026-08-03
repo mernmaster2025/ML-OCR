@@ -28,6 +28,10 @@ def preprocess(image: Image.Image) -> torch.Tensor:
     image = ImageOps.invert(image)      # EMNIST: white letter on black bg
     image = ImageOps.autocontrast(image)  # maximize contrast
     image = image.resize((28, 28), Image.LANCZOS)
+    # torchvision serves EMNIST in its stored orientation, which is the
+    # transpose of how the character reads. Match it — that is what the
+    # model was trained on.
+    image = image.transpose(Image.Transpose.TRANSPOSE)
     tensor = transforms.ToTensor()(image)
     tensor = transforms.Normalize((0.1736,), (0.3317,))(tensor)
     return tensor.unsqueeze(0)          # add batch dimension → (1,1,28,28)

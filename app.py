@@ -1,19 +1,58 @@
+import time
+
 import gradio as gr
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 import numpy as np
 from predict import predict
+
+
+# Gradio decodes the canvas PNG straight off disk, and on a fast click it can
+# get there before the browser has finished writing the file — surfacing as
+# UnidentifiedImageError inside preprocess, out of reach of the event handler.
+# Retry the read briefly instead of dropping the stroke.
+#
+# Patched onto the stock class rather than a subclass on purpose: Gradio keys
+# frontend assets off the component's class name and module, so any subclass
+# reads as a third-party custom component and the UI hangs fetching bundles
+# that do not exist.
+_convert_image = gr.ImageEditor.convert_and_format_image
+
+
+def _convert_image_with_retry(self, file):
+    for attempt in range(5):
+        try:
+            return _convert_image(self, file)
+        except (UnidentifiedImageError, OSError):
+            if attempt == 4:
+                raise
+            time.sleep(0.1)
+
+
+gr.ImageEditor.convert_and_format_image = _convert_image_with_retry
+
 
 def run_prediction(input_image):
     """Handle both canvas draw and file upload."""
     if input_image is None:
         return "No input provided.", {}
 
-    # Gradio canvas returns RGBA numpy array
+    # Sketchpad returns {'background', 'layers', 'composite'} — the
+    # composite is the flattened drawing.
+    if isinstance(input_image, dict):
+        input_image = input_image.get('composite')
+        if input_image is None:
+            return "No input provided.", {}
+
     if isinstance(input_image, np.ndarray):
-        image = Image.fromarray(input_image).convert('RGBA')
-        # White canvas → extract alpha as mask
-        r, g, b, a = image.split()
-        image = Image.merge('RGB', (a, a, a))  # use alpha as intensity
+        image = Image.fromarray(input_image)
+        # Strokes sit on a transparent background → flatten onto white
+        # so the canvas path matches an uploaded image.
+        if image.mode == 'RGBA':
+            flat = Image.new('RGB', image.size, 'white')
+            flat.paste(image, mask=image.split()[3])
+            image = flat
+        else:
+            image = image.convert('RGB')
     else:
         image = input_image
 
@@ -62,4 +101,5 @@ with gr.Blocks(title="OCR — Alphanumeric Character Recognition") as app:
         outputs=[result_label, confidence_bar]
     )
 
-app.launch()
+if __name__ == '__main__':
+    app.launch()
